@@ -10,7 +10,7 @@ bool obfuscator::obfuscate_mov(std::vector<obfuscator::function_t>::iterator& fu
 
 		if (x86_register_map != lookupmap.end()) {
 
-			int bit_of_value = instruction->zyinstr.raw.imm->size;
+			int bit_of_value = instruction->zyinstr.info.raw.imm->size;
 
 			auto usingregister = x86_register_map->second;
 
@@ -37,7 +37,7 @@ bool obfuscator::obfuscate_mov(std::vector<obfuscator::function_t>::iterator& fu
 				random_add_val = rand() % 255 + 1;
 				rand_xor_val = rand() % 255 + 1;
 				rand_rot_val = rand() % 255 + 1;
-				*(uint8_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.raw.imm->offset]) = ~((_rotr8(*(uint8_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.raw.imm->offset]), rand_rot_val) ^ rand_xor_val) - random_add_val);
+				*(uint8_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.info.raw.imm->offset]) = ~((_rotr8(*(uint8_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.info.raw.imm->offset]), rand_rot_val) ^ rand_xor_val) - random_add_val);
 				break;
 			}
 			case 16: {
@@ -45,7 +45,7 @@ bool obfuscator::obfuscate_mov(std::vector<obfuscator::function_t>::iterator& fu
 				random_add_val = distribution(generator);
 				rand_xor_val = distribution(generator);
 				rand_rot_val = distribution(generator);
-				*(uint16_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.raw.imm->offset]) = ~((_rotr16(*(uint16_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.raw.imm->offset]), rand_rot_val) ^ rand_xor_val) - random_add_val);
+				*(uint16_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.info.raw.imm->offset]) = ~((_rotr16(*(uint16_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.info.raw.imm->offset]), rand_rot_val) ^ rand_xor_val) - random_add_val);
 				break;
 			}
 			case 32: {
@@ -53,7 +53,7 @@ bool obfuscator::obfuscate_mov(std::vector<obfuscator::function_t>::iterator& fu
 				random_add_val = distribution(generator);
 				rand_xor_val = distribution(generator);
 				rand_rot_val = distribution(generator);
-				*(uint32_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.raw.imm->offset]) = ~((_rotr(*(uint32_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.raw.imm->offset]), rand_rot_val) ^ rand_xor_val) - random_add_val);
+				*(uint32_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.info.raw.imm->offset]) = ~((_rotr(*(uint32_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.info.raw.imm->offset]), rand_rot_val) ^ rand_xor_val) - random_add_val);
 				break;
 			}
 			case 64: {
@@ -61,7 +61,7 @@ bool obfuscator::obfuscate_mov(std::vector<obfuscator::function_t>::iterator& fu
 				random_add_val = distribution(generator);
 				rand_xor_val = distribution(generator);
 				rand_rot_val = distribution(generator);
-				*(uint64_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.raw.imm->offset]) = ~((_rotr64(*(uint64_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.raw.imm->offset]), rand_rot_val) ^ rand_xor_val) - random_add_val);
+				*(uint64_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.info.raw.imm->offset]) = ~((_rotr64(*(uint64_t*)(&instruction->raw_bytes.data()[instruction->zyinstr.info.raw.imm->offset]), rand_rot_val) ^ rand_xor_val) - random_add_val);
 				break;
 			}
 			}
@@ -77,9 +77,8 @@ bool obfuscator::obfuscate_mov(std::vector<obfuscator::function_t>::iterator& fu
 			auto err = rt.add(&fn, &code);
 
 			auto jitinstructions = this->instructions_from_jit((uint8_t*)fn, code.codeSize());
-			for (auto jit : jitinstructions) {
-				instruction = function->instructions.insert(instruction + 1, jit);
-			}
+			instruction = function->instructions.insert(instruction + 1, jitinstructions.begin(), jitinstructions.end());
+			instruction = instruction + jitinstructions.size() - 1;
 
 			code.reset();
 			code.init(rt.environment());
@@ -87,7 +86,7 @@ bool obfuscator::obfuscate_mov(std::vector<obfuscator::function_t>::iterator& fu
 			return true;
 
 		}
-	
+
 	}
 
 	return false;

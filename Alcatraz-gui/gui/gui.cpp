@@ -92,7 +92,7 @@ void gui::render_interface() {
 
 			
 				ImGui::SetNextItemWidth(300);
-				ImGui::InputText("", func_name, 1024);
+				ImGui::InputText("##treeAddFuncs", func_name, 1024);
 
 				if (ImGui::TreeNode("Added functions")) {
 					for (int i = 0; i < funcs_to_obfuscate.size(); i++)
@@ -126,12 +126,9 @@ void gui::render_interface() {
 				
 				if (ImGui::Button("Add all")) {
 
-					for (auto func = funcs.begin(); func != funcs.end(); ++func) {
-
-						funcs_to_obfuscate.push_back(*func);
-						func = funcs.erase(func);
-						func--;
-
+					while (funcs.size() != 0) {
+						funcs_to_obfuscate.push_back(funcs.front());
+						funcs.erase(funcs.begin());
 					}
 
 				}
@@ -139,6 +136,7 @@ void gui::render_interface() {
 				if (ImGui::Button("Compile")) {
 					try {
 						inter::run_obfuscator(funcs_to_obfuscate, obf_entry_point);
+						MessageBoxA(0, "Compiled", "Success", 0);
 					}
 					catch (std::runtime_error e)
 					{
@@ -146,13 +144,10 @@ void gui::render_interface() {
 						path = "";
 						//std::cout << "Runtime error: " << e.what() << std::endl;
 					}
-
-					MessageBoxA(0, "Compiled", "Success", 0);
-
 				}
-
-				ImGui::EndChild();
 			}
+			ImGui::EndChild();
+
 			
 			ImGui::SetNextWindowPos(ImVec2(400, 25));
 			ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.48f, 0.48f, 0.48f, 0.94f));

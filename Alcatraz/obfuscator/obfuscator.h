@@ -3,6 +3,7 @@
 #include "Zydis/Zydis.h"
 #include "../pdbparser/pdbparser.h"
 
+#include <map>
 #include <string>
 #include <algorithm>
 #include <unordered_map>
@@ -14,6 +15,11 @@ private:
 	struct instruction_t;
 	struct function_t;
 	pe64* pe;
+	struct func_id_instr_id {
+		int func_id;
+		int inst_index;
+	};
+	std::map<uint64_t, func_id_instr_id> runtime_addr_track;
 
 	static int instruction_id;
 	static int function_iterator;
@@ -87,7 +93,7 @@ public:
 		std::vector<uint8_t>raw_bytes;
 		uint64_t runtime_address;
 		uint64_t relocated_address;
-		ZydisDecodedInstruction zyinstr;
+		ZydisDisassembledInstruction zyinstr;
 		bool has_relative;
 		bool isjmpcall;
 
@@ -103,7 +109,7 @@ public:
 
 		void load_relative_info();
 		void load(int funcid, std::vector<uint8_t>raw_data);
-		void load(int funcid, ZydisDecodedInstruction zyinstruction, uint64_t runtime_address);
+		void load(int funcid, ZydisDisassembledInstruction zyinstruction, uint64_t runtime_address);
 		void reload();
 		void print();
 	};
@@ -112,6 +118,7 @@ public:
 		int func_id;
 		std::string name;
 		std::vector<instruction_t>instructions;
+		std::map<int, uint64_t> inst_id_index;
 		uint32_t offset;
 		uint32_t size;
 
@@ -122,9 +129,8 @@ public:
 		bool mutateobf = true;
 		bool leaobf = true;
 		bool antidisassembly = true;
-
+		bool has_jumptables = false;
 	};
-
 };
 
 
